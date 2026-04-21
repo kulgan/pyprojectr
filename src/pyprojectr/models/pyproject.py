@@ -2,45 +2,30 @@ import pathlib
 from typing import Any
 
 import attrs
-import cattrs
 import tomli
-from cattrs.gen import make_dict_structure_fn
 
-STRUCT_CONVERTER = cattrs.Converter()
-
-
-def convert_underscores(cls):
-    return make_dict_structure_fn(
-        cls,
-        STRUCT_CONVERTER,
-        **{a.name: cattrs.override(rename=_underscores_to_hyphen(a.name)) for a in attrs.fields(cls)
-           })
+from pyprojectr.models.core import BaseModel
 
 
-def _underscores_to_hyphen(text: str, reverse: bool = False) -> str:
-    if not reverse:
-        return text.replace("_", "-")
-    return text.replace("-", "_")
+@attrs.define(frozen=True)
+class BuildSystem(BaseModel):
+    requires: list[str]
+    build_backend: str | None = None
+    backend_path: list[str] | None = None
 
-STRUCT_CONVERTER.register_structure_hook_factory(attrs.has, convert_underscores)
 
-@attrs.define
-class BaseModel:
-
-    @classmethod
-    def converter(cls) -> cattrs.Converter:
-        return STRUCT_CONVERTER
-
-@attrs.define
+@attrs.define(frozen=True)
 class Author(BaseModel):
     name: str | None = None
     email: str | None = None
 
+    def __attrs_post_init__(self) -> None:
+        if not self.name and not self.email:
+            raise ValueError("Author must have a name or email")
 
-@attrs.define
-class BuildSystem(BaseModel):
-    build_backend: str
-    requires: list[str]
+
+@attrs.define(frozen=True)
+class Maintainer(Author): ...
 
 
 @attrs.define
@@ -49,6 +34,7 @@ class PyProject(BaseModel):
     version: str | None = None
     description: str | None = None
     authors: list[Author] = attrs.Factory(list)
+    maintainers: list[Maintainer] = attrs.Factory(list)
     readme: Any = None
     requires_python: str | None = None
     dependencies: list[str] = attrs.Factory(list)
