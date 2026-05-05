@@ -1,0 +1,38 @@
+name: pyprojectr-actions
+
+on:
+  push:
+    branches:
+      - "**"
+    tags-ignore:
+      - "**"
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        name: checkout
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - name: pre-commit
+        run: |
+          pip install tox
+          tox -e pre-commit
+
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14", "3.15"]
+    steps:
+      - uses: actions/checkout@v6
+        name: checkout
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python }}
+      - name: tests
+        run: |
+          pip install tox
+          tox -e py
