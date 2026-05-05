@@ -1,7 +1,11 @@
 name: pyprojectr-actions
 
 on:
-  push
+  push:
+    branches:
+      - "**"
+    tags-ignore:
+      - "**"
 
 jobs:
   pre-commit:
