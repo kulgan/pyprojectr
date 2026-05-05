@@ -1,5 +1,6 @@
-import pytest
 import attrs
+import pytest
+
 from pyprojectr import pyproject
 
 
@@ -51,7 +52,7 @@ def test_build_system_frozen():
     """Test that BuildSystem is frozen and attributes cannot be modified."""
     build_system = pyproject.BuildSystem(build_backend="setuptools.build_meta", requires=["setuptools"])
     with pytest.raises(attrs.exceptions.FrozenInstanceError):
-        build_system.build_backend = "something.else"  # noqa
+        build_system.build_backend = "something.else"
 
 
 def test_build_system_missing_required_fields():

@@ -1,3 +1,4 @@
-from .models import pyproject
+from pyprojectr import pyproject
+from pyprojectr.pyproject import Author, BuildSystem, License, Maintainer, PyProject, PyProjectFile, Readme
 
-__all__ = ["pyproject"]
+__all__ = ["Author", "BuildSystem", "License", "Maintainer", "PyProject", "PyProjectFile", "Readme", "pyproject"]

@@ -1,12 +1,12 @@
 [build-system]
 build-backend = "setuptools.build_meta"
-requires = [ "setuptools>=80", "setuptools-scm[toml]" ]
+requires = [ "setuptools>=80", "setuptools-scm[toml]>=9.2" ]
 
 [project]
 name = "pyprojectr"
 description = "Add your description here"
 readme = "README.md"
-license = { text = "Apache2" }
+license = "Apache-2.0"
 authors = [ { name = "Rowland Ogwara", email = "r.ogwara@gmail.com" } ]
 requires-python = ">=3.10"
 classifiers = [
@@ -31,13 +31,78 @@ dev = [
   "pytest-cov>=7.1",
 ]
 
+[tool.setuptools_scm]
+local_scheme = "no-local-version"
+
 [tool.ruff]
 target-version = "py310"
 line-length = 120
+src = [ "src", "tests" ]
+[tool.ruff.lint]
+select = [
+  "E",   # pydocstyle errors
+  "F",   # pyflakes
+  "I",   # isort
+  "N",   # pep8 naming
+  "RUF", # ruff specific rules
+  "UP",  # pyupgrade
+  "W"  # pydocstyle warnings
+]
 
 [tool.pyproject-fmt]
 table_format = "long"
 collapse_tables = [ "project.authors" ]
 
 [tool.pytest]
-minverson = "9.0"
+minversion = "9.0"
+addopts = [ "-rfE", "--color=yes", "--cov=pyprojectr", "--cov-report=term" ]
+log_cli = true
+log_cli_level = "INFO"
+norecursedirs = [
+  ".git",
+  ".tox",
+  "build",
+]
+testpaths = [ "tests" ]
+
+[tool.coverage.html]
+directory = "docs/htmlcov"
+[tool.coverage.run]
+branch = true
+source = [ "pyprojectr" ]
+
+[tool.tox]
+isolated_build = true
+skip_missing_interpreters = true
+requires = [ "tox >= 4.20", "tox-uv >= 1.20" ]
+env_list = [ "py310", "py311", "py312", "py313", "py314", "py315" ]
+
+# pre-commit hooks
+[tool.tox.env.pre-commit]
+base_python = "py313"
+runner = "uv-venv-runner"
+skip_install = true
+deps = [ "pre-commit" ]
+commands = [ [ "pre-commit", "run", "--all-files", "--color=always" ] ]
+
+# publish env
+[tool.tox.env.publish]
+runner = "uv-venv-runner"
+skip_install = true
+deps = [ "twine", "build" ]
+commands = [ [ "python", "-m", "build", "--outdir", "dist" ], [ "twine", "upload", "dist/*" ] ]
+
+# base env config
+[tool.tox.env_run_base]
+usedevelop = true
+runner = "uv-venv-lock-runner"
+dependency_group = [ "dev" ]
+commands = [
+  [
+    "python",
+    "-m",
+    "pytest",
+    "-lv",
+    { replace = "posargs", default = [ "--cov-report=html", "--cov-report=xml", "--junit-xml=report.xml" ], extend = true },
+  ]
+]
