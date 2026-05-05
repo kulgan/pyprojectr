@@ -35,7 +35,7 @@ jobs:
 
   publish:
     runs-on: ubuntu-latest
-    needs: [tests, lint]
+    needs: [tests, pre-commit]
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
     steps:
       - uses: actions/checkout@v6
