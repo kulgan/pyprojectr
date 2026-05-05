@@ -1,0 +1,24 @@
+name: pyproject-release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        name: checkout
+      - uses: actions/setup-python@v6
+        with:
+          python-version: 3.10
+      - name: publish
+        run: |
+          python -m pip install tox
+          tox -e publish
+        env:
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}

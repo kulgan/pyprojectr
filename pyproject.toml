@@ -87,10 +87,15 @@ commands = [ [ "pre-commit", "run", "--all-files", "--color=always" ] ]
 
 # publish env
 [tool.tox.env.publish]
-runner = "uv-venv-runner"
 skip_install = true
+runner = "uv-venv-runner"
 deps = [ "twine", "build" ]
-commands = [ [ "python", "-m", "build", "--outdir", "dist" ], [ "twine", "upload", "dist/*" ] ]
+pass_env = [ "TWINE_PASSWORD", "TWINE_REPOSITORY" ]
+set_env = [ { TWINE_USERNAME = { replace = "env", name = "TWINE_USERNAME", default = "__token__" } } ]
+commands = [
+  [ "python", "-m", "build", "--outdir", "dist" ],
+  [ "twine", "upload", { replace = "posargs", extend = true }, "dist/*" ]
+]
 
 # base env config
 [tool.tox.env_run_base]
