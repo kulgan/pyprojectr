@@ -56,4 +56,7 @@ STRUCT_CONVERTER.register_structure_hook_factory(attrs.has, convert_underscores)
 STRUCT_CONVERTER.register_unstructure_hook_factory(attrs.has, unconvert_underscores)
 
 
-class PyProjectTool(BaseModel): ...
+class PyProjectTool(BaseModel):
+    @property
+    def pyprojectr_underscores_to_hyphen(self) -> bool:
+        return False

@@ -70,13 +70,6 @@ class PyProject(core.BaseModel):
     dynamic: list[str] = attrs.Factory(list)
 
 
-# @attrs.define(frozen=True)
-# class PyProjectTool(core.BaseModel):
-#     setuptools_scm: PyProjectScmTool | None = attrs.field(default=None, metadata={"pyprojectr_no_rename": True})
-#     setuptools_scmx: PyProjectScmxTool | None = attrs.field(default=None, metadata={"pyprojectr_no_rename": True})
-#     pytest: PytestTool | None = None
-
-
 class PyProjectToolMapping(Mapping[str, Any]):
     def __init__(self, tools_data: dict[str, Any]) -> None:
         self.tools_data = tools_data

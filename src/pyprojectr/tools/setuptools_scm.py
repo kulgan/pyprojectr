@@ -1,10 +1,10 @@
 import attrs
 
-from pyprojectr.core import BaseModel
+from pyprojectr.core import PyProjectTool
 
 
 @attrs.define(frozen=True)
-class PyProjectScmTool(BaseModel):
+class PyProjectScmTool(PyProjectTool):
     __pyprojectr_no_rename__ = True
     version_scheme: str | None = None
     local_scheme: str | None = None
@@ -19,7 +19,7 @@ class PyProjectScmTool(BaseModel):
 
 
 @attrs.define(frozen=True)
-class PyProjectScmxTool(BaseModel):
+class PyProjectScmxTool(PyProjectTool):
     __pyprojectr_no_rename__ = True
     ci_version_variable: str
     ci_main_branch_name: str
