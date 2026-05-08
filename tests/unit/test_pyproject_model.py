@@ -1,4 +1,5 @@
 from pyprojectr import Author, License, PyProject, Readme
+from pyprojectr.tools import PyProjectScmTool
 
 
 def test_pyproject_initialization():
@@ -55,3 +56,39 @@ def test_pyproject_readme_string():
     data = {"name": "test", "readme": "README.md"}
     project = PyProject.from_data(data)
     assert project.readme == "README.md"
+
+
+def test_pyproject_to_data_roundtrip():
+    """Test that PyProject can be unstructured back to data with hyphenated keys."""
+    data = {
+        "name": "full-project",
+        "requires-python": ">=3.10",
+        "dependencies": ["attrs", "cattrs"],
+        "authors": [{"name": "Rowland", "email": "r@example.com"}],
+    }
+    project = PyProject.from_data(data)
+    unstructured_data = project.to_data()
+
+    assert unstructured_data["name"] == "full-project"
+    assert unstructured_data["requires-python"] == ">=3.10"
+    assert unstructured_data["dependencies"] == ["attrs", "cattrs"]
+    assert unstructured_data["authors"][0]["name"] == "Rowland"
+    # Ensure no 'requires_python' (underscored) key exists in the output
+    assert "requires_python" not in unstructured_data
+
+
+def test_pyproject_tool_underscore_naming():
+    """Test that tool names with underscores are correctly handled."""
+    from pyprojectr.pyproject import PyProjectFile
+
+    data = {
+        "build-system": {"requires": ["setuptools"], "build-backend": "setuptools.build_meta"},
+        "project": {"name": "test-project"},
+        "tool": {"setuptools_scm": {"write_to": "version.py"}},
+    }
+
+    # This might fail if it expects 'setuptools-scm'
+    project_file = PyProjectFile.from_data(data)
+    scm_tool = project_file.get_tool_options("setuptools_scm", PyProjectScmTool)
+    assert scm_tool is not None
+    assert scm_tool.write_to == "version.py"
