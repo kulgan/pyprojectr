@@ -1,11 +1,14 @@
 import pathlib
-from typing import Any
+from collections.abc import Mapping
+from typing import Any, TypeVar
 
 import attrs
 import tomli
 
 from pyprojectr import core
-from pyprojectr.tools import PytestTool
+from pyprojectr.core import PyProjectTool
+
+Tool = TypeVar("Tool", bound=PyProjectTool)
 
 
 @attrs.define(frozen=True)
@@ -36,10 +39,11 @@ class Readme(core.BaseModel):
     content_type: str | None = None
 
     def __eq__(self, other) -> bool:
-        print(other, type(other), self)
         if isinstance(other, str):
             return self.file == other
-        return self.file == other.file
+        if isinstance(other, Readme):
+            return self.file == other.file
+        return False
 
 
 @attrs.define(frozen=True)
@@ -66,47 +70,44 @@ class PyProject(core.BaseModel):
     dynamic: list[str] = attrs.Factory(list)
 
 
-@attrs.define(frozen=True)
-class PyProjectScmTool(core.BaseModel):
-    version_scheme: str | None = None
-    local_scheme: str | None = None
-    write_to: str | None = None
-    write_to_template: str | None = None
-    relative_to: str | None = None
-    tag_regex: str | None = None
-    parentdir_prefix: str | None = None
-    fallback_version: str | None = None
-    parse: Any | None = None
-    git_describe_command: str | None = None
+# @attrs.define(frozen=True)
+# class PyProjectTool(core.BaseModel):
+#     setuptools_scm: PyProjectScmTool | None = attrs.field(default=None, metadata={"pyprojectr_no_rename": True})
+#     setuptools_scmx: PyProjectScmxTool | None = attrs.field(default=None, metadata={"pyprojectr_no_rename": True})
+#     pytest: PytestTool | None = None
 
 
-@attrs.define(frozen=True)
-class PyProjectScmxTool(core.BaseModel):
-    ci_version_variable: str
-    ci_main_branch_name: str
+class PyProjectToolMapping(Mapping[str, Any]):
+    def __init__(self, tools_data: dict[str, Any]) -> None:
+        self.tools_data = tools_data
 
+    def __iter__(self): ...
+    def __len__(self): ...
+    def __setitem__(self, key, value, /): ...
 
-@attrs.define(frozen=True)
-class PyProjectTool(core.BaseModel):
-    setuptools_scm: PyProjectScmTool | None = None
-    setuptools_scmx: PyProjectScmxTool | None = None
-    pytest: PytestTool | None = None
+    def __getitem__(self, name: str) -> Any:
+        return self.tools_data[name]
+
+    def __getattr__(self, name: str) -> Any:
+        return self.tools_data[name]
 
 
 @attrs.define(frozen=True)
 class PyProjectFile(core.BaseModel):
     build_system: BuildSystem
     project: PyProject
-    tool: PyProjectTool | None = None
-    dependency_groups: dict[str, list[str | dict[str, Any]]] = attrs.Factory(dict)
+    tool: dict[str, Any] | None = None
+    dependency_groups: dict[str, Any] = attrs.Factory(dict)
 
     @property
-    def tools(self) -> PyProjectTool | None:
-        return self.tool
+    def tools(self) -> PyProjectToolMapping | None:
+        if self.tool:
+            return PyProjectToolMapping(self.tool)
+        return None
 
-    def get_tool_options(self, name: str) -> Any:
-        if self.tool and hasattr(self.tool, name):
-            return getattr(self.tool, name)
+    def get_tool_options(self, name: str, tool_class: type[Tool]) -> Tool | None:
+        if self.tool and name in self.tool:
+            return tool_class.from_data(self.tool[name])
         return None
 
 
@@ -118,6 +119,6 @@ def register_readme_hook(value: dict[str, Any] | str, _) -> Readme:
 
 
 def from_file(path: pathlib.Path) -> PyProjectFile:
-    with path.open() as f:
-        toml = tomli.loads(f.read())
-        return core.BaseModel.converter().structure(toml, PyProjectFile)
+    with path.open("rb") as f:
+        toml = tomli.load(f)
+        return PyProjectFile.from_data(toml)

@@ -1,10 +1,10 @@
 import attrs
 
-from pyprojectr.core import BaseModel
+from pyprojectr.core import PyProjectTool
 
 
 @attrs.define(frozen=True)
-class PytestTool(BaseModel):
+class PytestTool(PyProjectTool):
     """Model for [tool.pytest.ini_options] in pyproject.toml."""
 
     minversion: str | None = None
