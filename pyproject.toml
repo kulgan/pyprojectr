@@ -24,7 +24,6 @@ dynamic = [ "version" ]
 dependencies = [
   "attrs>=26.1",
   "cattrs>=26.1",
-  "tomli>=2.4.1",
 ]
 
 [dependency-groups]

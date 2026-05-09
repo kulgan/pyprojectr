@@ -1,9 +1,9 @@
 import pathlib
+import tomllib
 from collections.abc import Mapping
 from typing import Any, TypeVar
 
 import attrs
-import tomli
 
 from pyprojectr import core
 from pyprojectr.core import PyProjectTool
@@ -113,5 +113,5 @@ def register_readme_hook(value: dict[str, Any] | str, _) -> Readme:
 
 def from_file(path: pathlib.Path) -> PyProjectFile:
     with path.open("rb") as f:
-        toml = tomli.load(f)
+        toml = tomllib.load(f)
         return PyProjectFile.from_data(toml)

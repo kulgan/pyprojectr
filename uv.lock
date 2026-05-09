@@ -179,7 +179,6 @@ source = { editable = "." }
 dependencies = [
     { name = "attrs" },
     { name = "cattrs" },
-    { name = "tomli" },
 ]
 
 [package.dev-dependencies]
@@ -192,7 +191,6 @@ dev = [
 requires-dist = [
     { name = "attrs", specifier = ">=26.1" },
     { name = "cattrs", specifier = ">=26.1" },
-    { name = "tomli", specifier = ">=2.4.1" },
 ]
 
 [package.metadata.requires-dev]
