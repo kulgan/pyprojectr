@@ -1,11 +1,10 @@
 # pyprojectr
 
-`pyprojectr` is a Python library designed to parse, validate, and model `pyproject.toml` files using `attrs` and `cattrs`. It provides a type-safe way to interact with the metadata of your Python projects.
+`pyprojectr` is a Python library designed to parse and model `pyproject.toml` files. It provides a type-safe way to interact with the metadata of your Python projects.
 
 ## Features
 
 - **Type-Safe Modeling**: Full support for the standard `[project]` and `[build-system]` tables.
-- **Tool Support**: Integrated models for common tools like `pytest` and `setuptools_scm`.
 - **Flexible Parsing**: Handles both simple and complex field formats (e.g., `readme` as a string or a table).
 - **Naming Conventions**: Automatically maps TOML hyphenated keys (e.g., `requires-python`) to Pythonic underscored attributes (e.g., `requires_python`).
 - **Extensible**: Easily extendable to support additional `[tool]` sections.
