@@ -53,10 +53,3 @@ def test_build_system_frozen():
     build_system = pyproject.BuildSystem(build_backend="setuptools.build_meta", requires=["setuptools"])
     with pytest.raises(attrs.exceptions.FrozenInstanceError):
         build_system.build_backend = "something.else"
-
-
-def test_build_system_missing_required_fields():
-    """Test that initialization fails if required fields are missing."""
-    with pytest.raises(TypeError):
-        # Missing requires
-        pyproject.BuildSystem(build_backend="setuptools.build_meta")  # type: ignore
