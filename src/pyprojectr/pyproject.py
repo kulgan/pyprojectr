@@ -13,7 +13,7 @@ Tool = TypeVar("Tool", bound=PyProjectTool)
 
 @attrs.define(frozen=True)
 class BuildSystem(core.BaseModel):
-    requires: list[str]
+    requires: list[str] = attrs.field(default=["setuptools>=80"])
     build_backend: str | None = None
     backend_path: list[str] | None = None
 
@@ -87,8 +87,8 @@ class PyProjectToolMapping(Mapping[str, Any]):
 
 @attrs.define(frozen=True)
 class PyProjectFile(core.BaseModel):
-    build_system: BuildSystem
     project: PyProject
+    build_system: BuildSystem = attrs.field(default=BuildSystem())
     tool: dict[str, Any] | None = None
     dependency_groups: dict[str, Any] = attrs.Factory(dict)
 
