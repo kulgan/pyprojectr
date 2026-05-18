@@ -1,5 +1,6 @@
-from pyprojectr import pyproject
+from pyprojectr import pylock, pyproject
 from pyprojectr.core import BaseModel, PyProjectTool
+from pyprojectr.pylock import PylockFile
 from pyprojectr.pyproject import Author, BuildSystem, License, Maintainer, PyProject, PyProjectFile, Readme
 
 __all__ = [
@@ -11,6 +12,8 @@ __all__ = [
     "PyProject",
     "PyProjectFile",
     "PyProjectTool",
+    "PylockFile",
     "Readme",
+    "pylock",
     "pyproject",
 ]
