@@ -24,7 +24,11 @@ dynamic = [ "version" ]
 dependencies = [
   "attrs>=26.1",
   "cattrs>=26.1",
+  "click>=8.1.7",
+  "tomli-w>=1.2",
 ]
+[project.scripts]
+pyprojectr = "pyprojectr.cli:main"
 
 [dependency-groups]
 dev = [

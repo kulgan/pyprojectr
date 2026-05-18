@@ -1,4 +1,5 @@
-from pyprojectr import pipfile_lock, pylock, pyproject, uv_lock
+from pyprojectr import converter, pipfile_lock, pylock, pyproject, uv_lock
+from pyprojectr.converter import convert
 from pyprojectr.core import BaseModel, PyProjectTool
 from pyprojectr.pipfile_lock import PipfileLock
 from pyprojectr.pylock import PylockFile
@@ -18,6 +19,8 @@ __all__ = [
     "PylockFile",
     "Readme",
     "UvLockFile",
+    "convert",
+    "converter",
     "pipfile_lock",
     "pylock",
     "pyproject",
