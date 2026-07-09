@@ -1,4 +1,4 @@
-name: pyproject-release
+name: pyproject
 
 on:
   release:
