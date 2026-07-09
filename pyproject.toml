@@ -27,8 +27,14 @@ dependencies = [
   "click>=8.1.7",
   "tomli-w>=1.2",
 ]
+
+# scripts
 [project.scripts]
 pyprojectr = "pyprojectr.cli:main"
+
+# urls
+[project.urls]
+Source = "https://github.com/kulgan/pyprojectr"
 
 [dependency-groups]
 dev = [

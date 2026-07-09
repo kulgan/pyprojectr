@@ -56,6 +56,30 @@ def test_convert_uv_to_pipfile_via_pivot():
     assert "sha256:hash1" in pip.default["pkg"].hashes
 
 
+def test_convert_uv_to_pipfile_with_scopes():
+    data = {
+        "version": 1,
+        "revision": 1,
+        "package": [
+            {
+                "name": "my-project",
+                "source": {"editable": "."},
+                "dependencies": [{"name": "prod-dep"}],
+                "dev-dependencies": {"dev": [{"name": "dev-dep"}]},
+            },
+            {"name": "prod-dep", "version": "1.0.0"},
+            {"name": "dev-dep", "version": "2.0.0"},
+        ],
+    }
+    uv = UvLockFile.from_data(data)
+    pip = convert(uv, PipfileLock)
+
+    assert "prod-dep" in pip.default
+    assert "dev-dep" in pip.develop
+    assert "dev-dep" not in pip.default
+    assert "prod-dep" not in pip.develop
+
+
 def test_convert_pylock_to_uv():
     data = {
         "lock-version": "1.0",

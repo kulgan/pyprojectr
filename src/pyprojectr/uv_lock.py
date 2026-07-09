@@ -60,8 +60,45 @@ class UvLockFile(core.BaseModel):
     manifest: dict[str, Any] = attrs.Factory(dict)
 
     def to_pylock(self) -> pylock.PylockFile:
+        # 1. Identify production and dev dependencies
+        production_names = set()
+        dev_names = set()
+
+        # Map name to package for easy lookup
+        pkg_map = {p.name: p for p in self.package}
+
+        def trace(name: str, visited: set[str]):
+            if name in visited or name not in pkg_map:
+                return
+            visited.add(name)
+            p = pkg_map[name]
+            for dep in p.dependencies:
+                trace(dep.name, visited)
+
+        # Root packages are those with editable source or no source (workspace members)
+        roots = [p for p in self.package if p.source and (p.source.editable or p.source.path == ".")]
+        if not roots:
+            # Fallback: everything is production if no roots found
+            production_names = set(pkg_map.keys())
+        else:
+            for root in roots:
+                # Production trace
+                for dep in root.dependencies:
+                    trace(dep.name, production_names)
+                # Dev trace
+                for group, deps in root.dev_dependencies.items():
+                    for dep in deps:
+                        trace(dep.name, dev_names)
+
+        # Packages that are ONLY in dev_names (and not in production_names) are marked as dev
+        dev_only = dev_names - production_names
+
         packages = []
         for pkg in self.package:
+            # Skip roots themselves in the final package list if they are just the project
+            if pkg in roots:
+                continue
+
             # Map source
             vcs = None
             directory = None
@@ -85,6 +122,10 @@ class UvLockFile(core.BaseModel):
                     pylock.WheelSource(url=whl.url, hashes={"sha256": whl.hash.split(":")[-1]} if whl.hash else {})
                 )
 
+            marker = None
+            if pkg.name in dev_only:
+                marker = "'dev' in dependency_groups"
+
             packages.append(
                 pylock.Package(
                     name=pkg.name,
@@ -95,6 +136,7 @@ class UvLockFile(core.BaseModel):
                     archive=archive,
                     sdist=sdist,
                     wheels=wheels,
+                    marker=marker,
                 )
             )
 
@@ -103,6 +145,7 @@ class UvLockFile(core.BaseModel):
             created_by="pyprojectr (from uv.lock)",
             requires_python=self.requires_python,
             packages=packages,
+            dependency_groups=["dev"] if dev_names else [],
         )
 
 

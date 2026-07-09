@@ -1,0 +1,9 @@
+- id: uv-to-pipfile
+  name: uv-to-pipfile
+  description: Automatically converts uv.lock to Pipfile.lock
+  entry: pyprojectr convert
+  args: [uv.lock, Pipflie.lock]
+  language: python
+  files: uv.lock
+  always_run: true
+  pass_filenames: false

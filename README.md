@@ -1,13 +1,15 @@
 # pyprojectr
 
-`pyprojectr` is a Python library designed to parse and model `pyproject.toml` files. It provides a type-safe way to interact with the metadata of your Python projects.
+`pyprojectr` is a Python library and CLI designed to parse, model, and convert Python project metadata and lock files. It provides a type-safe way to interact with `pyproject.toml`, PEP 751 (`pylock.toml`), `uv.lock`, and `Pipfile.lock` files.
 
 ## Features
 
-- **Type-Safe Modeling**: Full support for the standard `[project]` and `[build-system]` tables.
-- **Flexible Parsing**: Handles both simple and complex field formats (e.g., `readme` as a string or a table).
-- **Naming Conventions**: Automatically maps TOML hyphenated keys (e.g., `requires-python`) to Pythonic underscored attributes (e.g., `requires_python`).
-- **Extensible**: Easily extendable to support additional `[tool]` sections.
+- **Type-Safe Modeling**: Full support for `pyproject.toml`, PEP 751, `uv.lock`, and `Pipfile.lock`.
+- **Lock File Conversion**: Convert between different lock file formats using PEP 751 as a standardized pivot.
+- **Dependency Scope Preservation**: Maintains the distinction between production and development dependencies during conversion.
+- **Flexible Parsing**: Handles both simple and complex field formats automatically.
+- **Naming Conventions**: Automatically maps TOML/JSON hyphenated keys (e.g., `requires-python`) to Pythonic underscored attributes (e.g., `requires_python`).
+- **CLI Tool**: A powerful command-line interface for easy file conversion.
 
 ## Installation
 
@@ -25,120 +27,63 @@ uv add pyprojectr
 
 ## Usage
 
-### Loading a `pyproject.toml` file
+### CLI: Converting Lock Files
+
+`pyprojectr` provides a CLI to convert between lock file formats. It automatically detects the format based on the file name.
+
+```bash
+# Convert uv.lock to PEP 751 format
+pyprojectr convert uv.lock pylock.toml
+
+# Convert PEP 751 to Pipfile.lock (Pipenv format)
+pyprojectr convert pylock.toml Pipfile.lock
+
+# Explicitly specify formats
+pyprojectr convert input.lock output.toml --from uv --to pylock
+```
+
+### Library: Loading and Converting
 
 ```python
 from pathlib import Path
-from pyprojectr.pyproject import from_file
+from pyprojectr import uv_lock, PylockFile, PipfileLock, convert
 
-# Load pyproject.toml from the current directory
-pyproj = from_file(Path("pyproject.toml"))
+# Load a uv.lock file
+uv = uv_lock.from_file(Path("uv.lock"))
 
-print(f"Project Name: {pyproj.project.name}")
-print(f"Version: {pyproj.project.version}")
-print(f"Dependencies: {pyproj.project.dependencies}")
+# Convert to PEP 751 (Pylock)
+pylock = convert(uv, PylockFile)
 
-# Access tool-specific configuration
-if pyproj.tool and pyproj.tool.pytest:
-    print(f"Pytest Options: {pyproj.tool.pytest.addopts}")
+# Convert to Pipfile.lock
+pipfile = convert(uv, PipfileLock)
 ```
 
-### Creating Models Programmatically
+## Pre-commit Hook
 
-```python
-from pyprojectr import PyProject, Author
+You can use `pyprojectr` as a pre-commit hook to ensure your exported lock files (like `pylock.toml`) are always in sync with your primary lock file (like `uv.lock`).
 
-project = PyProject(
-    name="my-awesome-project",
-    version="0.1.0",
-    authors=[Author(name="Jane Doe", email="jane@example.com")]
-)
+Add this to your `.pre-commit-config.yaml`:
 
-print(project.name)
+```yaml
+repos:
+  - repo: https://github.com/kulgan/pyprojectr
+    rev: v0.1.3
+    hooks:
+      - id: uv-to-pipfile
+        name: sync uv to pipfile
+        entry: pyprojectr convert uv.lock pylock.toml
+        files: ^uv\.lock$
+        pass_filenames: false
 ```
 
-### Extending with Custom Tools
+## Supported Formats
 
-You can easily define your own data classes for custom tool configurations by inheriting from `BaseModel`. `pyprojectr` will automatically handle the conversion between TOML's hyphenated keys and your Python attributes.
-
-```python
-import attrs
-from pyprojectr.core import BaseModel
-
-@attrs.define(frozen=True)
-class MyCustomTool(BaseModel):
-    api_key: str
-    max_retries: int = 3
-    enable_logging: bool = True
-
-# Example data that might come from a [tool.my-custom-tool] section in pyproject.toml
-tool_data = {
-    "api-key": "secret-token",
-    "max-retries": 5,
-    "enable-logging": False
-}
-
-# Use from_data to create an instance with automatic key mapping
-my_tool = MyCustomTool.from_data(tool_data)
-
-print(my_tool.api_key)        # Output: secret-token
-
-# Use to_data to unstructure the instance back to a dictionary with hyphenated keys
-unstructured = my_tool.to_data()
-print(unstructured["api-key"]) # Output: secret-token
-```
-
-#### Controlling Attribute Renaming
-
-By default, `pyprojectr` converts all underscored attributes to hyphenated keys. You can disable this behavior for specific fields or entire classes:
-
-**Disable for a specific field:**
-
-```python
-import attrs
-from pyprojectr import BaseModel
-
-@attrs.define(frozen=True)
-class MyTool(BaseModel):
-    # This will look for 'api_key' instead of 'api-key' in TOML
-    api_key: str = attrs.field(metadata={"pyprojectr_no_rename": True})
-```
-
-**Disable for an entire class:**
-
-```python
-import attrs
-from pyprojectr import BaseModel
-
-@attrs.define(frozen=True)
-class MyTool(BaseModel):
-    __pyprojectr_no_rename__ = True
-
-    # Both will look for underscored names in TOML
-    api_key: str
-    max_retries: int
-```
-
-## Development
-
-`pyprojectr` uses `uv` for dependency management and `tox` for testing across multiple Python versions.
-
-### Setting up for development
-
-1. Clone the repository.
-2. Install dependencies:
-   ```bash
-   uv sync
-   ```
-3. Run tests:
-   ```bash
-   tox
-   ```
-
-### Quality Assurance
-
-- **Linting**: `ruff` is used for linting and formatting.
-- **Testing**: `pytest` is used for unit testing with coverage reporting.
+| Format        | File Name        | Standard                      |
+|:--------------|:-----------------|:------------------------------|
+| **PEP 751**   | `pylock.toml`    | Standardized Python Lock File |
+| **uv**        | `uv.lock`        | uv Package Manager            |
+| **Pipenv**    | `Pipfile.lock`   | Pipenv / Pipfile standard     |
+| **pyproject** | `pyproject.toml` | PEP 517 / PEP 621             |
 
 ## License
 

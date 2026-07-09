@@ -83,6 +83,7 @@ def _pylock_to_uv(pivot: pylock.PylockFile) -> uv_lock.UvLockFile:
 
 def _pylock_to_pipfile(pivot: pylock.PylockFile) -> pipfile_lock.PipfileLock:
     default_pkgs = {}
+    develop_pkgs = {}
     for pkg in pivot.packages:
         hashes = []
         # Combine sdist and wheel hashes
@@ -97,13 +98,17 @@ def _pylock_to_pipfile(pivot: pylock.PylockFile) -> pipfile_lock.PipfileLock:
         pip_pkg = pipfile_lock.PipfilePackage(
             version=f"=={pkg.version}" if pkg.version else "",
             hashes=hashes,
-            markers=pkg.marker,
+            markers=pkg.marker if pkg.marker and "dependency_groups" not in pkg.marker else None,
             git=pkg.vcs.url if pkg.vcs and pkg.vcs.type == "git" else None,
             ref=pkg.vcs.commit_id if pkg.vcs and pkg.vcs.type == "git" else None,
             path=pkg.directory.path if pkg.directory else None,
             editable=pkg.directory.editable if pkg.directory else None,
         )
-        default_pkgs[pkg.name] = pip_pkg
+
+        if pkg.marker and "'dev' in dependency_groups" in pkg.marker:
+            develop_pkgs[pkg.name] = pip_pkg
+        else:
+            default_pkgs[pkg.name] = pip_pkg
 
     meta = pipfile_lock.PipfileMeta(
         hash={"sha256": ""},
@@ -112,4 +117,4 @@ def _pylock_to_pipfile(pivot: pylock.PylockFile) -> pipfile_lock.PipfileLock:
         sources=[pipfile_lock.PipfileSource(name="pypi", url="https://pypi.org/simple", verify_ssl=True)],
     )
 
-    return pipfile_lock.PipfileLock(meta=meta, default=default_pkgs)
+    return pipfile_lock.PipfileLock(meta=meta, default=default_pkgs, develop=develop_pkgs)
