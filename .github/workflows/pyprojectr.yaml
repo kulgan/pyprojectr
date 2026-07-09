@@ -1,4 +1,4 @@
-name: pyprojectr-actions
+name: pyprojectr
 
 on:
   push:
