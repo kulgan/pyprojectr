@@ -16,13 +16,12 @@ You can install `pyprojectr` using `pip`:
 ```bash
 pip install pyprojectr
 ```
-
+>**Note**: Works with python 3.10+ and standard PEP 621 metadata
 Or using `uv`:
 
 ```bash
 uv add pyprojectr
 ```
-
 ## Usage
 
 ### Loading a `pyproject.toml` file
